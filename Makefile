@@ -13,5 +13,6 @@ test:
 	curl --cacert certs/intermediate_ca.crt \
          --cert certs/test-client.local/test-client.local.crt \
          --key certs/test-client.local/test-client.local.key \
-         https://localhost:8090/hello
+         https://localhost:8090/check \
+         | jq
          

@@ -39,7 +39,9 @@ async def run_server():
     config.ca_certs = args.ssl_ca
     config.verify_mode = ssl.CERT_REQUIRED
 
-    await serve (create_app() , config)
+
+    state = NAPSState.parse_file(args.vms)
+    await serve (create_app(state) , config)
 
 def main():
     anyio.run(run_server)
