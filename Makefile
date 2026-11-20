@@ -9,10 +9,19 @@ run:
         --ssl_ca certs/root_ca.crt \
         --vms examples/infra.json
 
-test:
+test-check:
 	curl --cacert certs/intermediate_ca.crt \
          --cert certs/test-client.local/test-client.local.crt \
          --key certs/test-client.local/test-client.local.key \
-         https://localhost:8090/check \
+         https://localhost:8090/check\
          | jq
+test-ping:
+	curl --cacert certs/intermediate_ca.crt \
+         --cert certs/test-client.local/test-client.local.crt \
+         --key certs/test-client.local/test-client.local.key \
+         https://localhost:8090/ping\
+         -d "running"\
+         | jq
+         #-H "Content-Type: application/json" \
+
          
