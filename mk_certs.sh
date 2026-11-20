@@ -18,7 +18,7 @@ mk_cert(){
 		--san localhost \
 		$CERT_NAME  $TARGET.crt $TARGET.key
 
-	cat $TARGET.crt step-ca/certs/intermediate_ca.crt > sponge $TARGET.crt
+	cat $TARGET.crt step-ca/certs/intermediate_ca.crt | sponge $TARGET.crt
 }
 
 mk_cert $1

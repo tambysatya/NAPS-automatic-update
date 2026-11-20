@@ -6,7 +6,8 @@ import os
 import argparse
 import ssl
 
-from .core import app
+from .State import NAPSState
+from .core import create_app
 
 LISTEN = Path(os.environ.get("LISTEN_ADDR", "0.0.0.0:8000"))
 
@@ -20,6 +21,7 @@ async def run_server():
     parser.add_argument ('--ssl_cert', help='path to the ssl certificate')
     parser.add_argument ('--ssl_key', help ='path to the ssl certificate key')
     parser.add_argument ('--ssl_ca', help ='path to the ssl authority', required=True)
+    parser.add_argument ('--vms', help ='path to the virtual machines JSON file', required=True)
     args = parser.parse_args()
 
 
@@ -37,7 +39,7 @@ async def run_server():
     config.ca_certs = args.ssl_ca
     config.verify_mode = ssl.CERT_REQUIRED
 
-    await serve (app, config)
+    await serve (create_app() , config)
 
 def main():
     anyio.run(run_server)
