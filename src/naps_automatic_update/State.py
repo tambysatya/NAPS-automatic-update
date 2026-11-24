@@ -1,6 +1,7 @@
 
 from pydantic import BaseModel, Field, TypeAdapter
 from typing import Literal, Annotated
+from typing_extensions import assert_never
 
 
 class ConfigHash (BaseModel):
@@ -45,18 +46,49 @@ class Failed (BaseModel):
     new : ConfigHash
 
 
+
 VMStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
 NAPSStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
 
+# Messages sent by the VMs
+
+class Acknowledge (BaseModel):
+    type: Literal ["ack"] = "ack"
+    order: NAPSOrder
+
+class Status (BaseModel):
+    type: Literal ["status"] = "status"
+    status: VMStatus
+
+VMMessage = Annotated [Acknowledge | Status, Field(discriminator="type")]
+
+
+class NAPSManifest (BaseModel):
+    status: NAPSStatus
+    vms: dict[str, VMStatus] # perVM status
+
+    def is_name_allowed (self, name):
+        return name in self.vms
 
 class NAPSState (BaseModel):
-        status : NAPSStatus
-        vms : dict[str, VMStatus] # perVM status
+        manifest : NAPSManifest 
 
         def is_name_allowed (self, name):
-            return name in self.vms
+            return self.manifest.is_name_allowed(name)
 
-        def process_ping (self, name, status):
+        def process_ping (self, vmname, status : VMStatus):
+            match (status):
+                case Idle():
+                    pass
+                case Pending():
+                    pass
+                case Failed():
+                    pass
+                case _ as unreachable:
+                    assert_never(unreachable)
+            pass
+        
+        def initialize_update (self, expected: NAPSManifest):
             pass
 
         
@@ -69,5 +101,5 @@ def test():
         "vmA": Running (config=ConfigHash(drv="a.drv", out="a.out")),
         "vmB": Running (config=ConfigHash(drv="a.drv", out="a.out"))
     }
-    return NAPSState (status=status, vms=vms)
+    return NAPSManifest (status=status, vms=vms)
     
