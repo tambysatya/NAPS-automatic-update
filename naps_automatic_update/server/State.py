@@ -1,6 +1,7 @@
 
 from typing_extensions import assert_never
-from .Types import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status, Ack, Idle, Pending, Failed, Running
+from .Types import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status
+from .Types import Ack, Idle, Pending, Failed, Running, SwitchTo
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
@@ -45,10 +46,10 @@ class NAPSState:
             case _ as unreachable:
                 assert_never(unreachable)
 
-    def send (self, vm: str, order : NAPSOrder):
-       self.clients[vm].send(message.model_dump_json()) 
+    async def send (self, vm: str, order : NAPSOrder):
+       await self.clients[vm].send_text(order.model_dump_json()) 
     
-    def initialize_update (self, expected : NAPSManifest):
+    async def initialize_update (self, expected : NAPSManifest):
         
         # check if all the VMs are Running properly
         not_running_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
@@ -66,9 +67,10 @@ class NAPSState:
         self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
 
 
-        for vm in self.expected_manifest.vms:
+        print (f"expected={expected}")
+        for vm in expected.vms:
             order = SwitchTo (config=expected.vms[vm].config)
-            self.send(vm, order)
+            await self.send(vm, order)
             
 
 
