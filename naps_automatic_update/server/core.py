@@ -6,7 +6,8 @@ from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 
 from .utils import get_tls_name
-from .State import NAPSState, NAPSManifest, VMStatus
+from .Types import NAPSManifest, VMStatus
+from .State import NAPSState
 
 
 def create_app (config_file):
