@@ -1,0 +1,19 @@
+{
+  "status": {
+    "type": "running",
+    "config": {
+      "drv": "naps.drv",
+      "out": "naps.out"
+    }
+  },
+  "vms": {
+    "test-client": {
+      "type": "running",
+      "config": {
+        "drv": "new.drv",
+        "out": "new.out"
+      }
+    }
+  }
+}
+

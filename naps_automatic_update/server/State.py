@@ -13,10 +13,14 @@ class NAPSState:
     async def connect (self, vm: str, ws : WebSocket):
         await ws.accept()
         self.clients[vm] = ws
+
+        not_connected_vms = [client for client in self.expected_manifest.vms if not (client in self.clients)]
+        if not_connected_vms == []:
+            print ("All clients are now connected")
+
+
     def disconnect (self, vm : str):
         self.clients.pop(vm, None)
-
-    def is_name_allowed (self, name):
         return self.expected_manifest.is_name_allowed(name)
 
     def process_status (self, vmname, status : VMStatus):
