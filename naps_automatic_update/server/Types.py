@@ -70,3 +70,20 @@ class NAPSManifest (BaseModel):
 
 
 
+
+
+def test():
+    status = Running(config=ConfigHash(drv="naps.drv", out="naps.out"))
+    vms = {
+        "vmA": Running (config=ConfigHash(drv="a.drv", out="a.out")),
+        "vmB": Running (config=ConfigHash(drv="b.drv", out="b.out"))
+    }
+    napsA = NAPSManifest (status=status, vms=vms)
+
+    vms2 = {
+        "vmA": Running (config=ConfigHash(drv="a'.drv", out="a'.out")),
+        "vmB": Running (config=ConfigHash(drv="b'.drv", out="b'.out"))
+    }
+    napsB = NAPSManifest (status=status, vms=vms2)
+    return napsA, napsB
+    

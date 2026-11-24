@@ -1,9 +1,10 @@
 
 from fastapi import FastAPI, HTTPException, Request
+from starlette.requests import HTTPConnection
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 
-def get_tls_name (request: Request):
+def get_tls_name (request: HTTPConnection):
     tls = request.scope.get("extensions", {}).get("tls")
     if not tls:
         raise HTTPException(500, "TLS extension unavailable")
