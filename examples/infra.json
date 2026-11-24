@@ -1,16 +1,26 @@
 {
-  "version": 0,
-  "status" : "running",
+  "status": {
+    "type": "running",
+    "config": {
+      "drv": "naps.drv",
+      "out": "naps.out"
+    }
+  },
   "vms": {
     "test-client": {
-      "drv": "/nix/store/lqbqvbvdmdqwc07222frsril7pnbndb2-nixos-system-postgres-26.05.20261118.3457b69.drv",
-      "out": "/nix/store/sv9vnjzbqikvr8xazw3ykwq146sxywzc-nixos-system-postgres-26.05.20261118.3457b69",
-      "status" : "running"
+      "type": "running",
+      "config": {
+        "drv": "a.drv",
+        "out": "a.out"
+      }
     },
-    "storage": {
-      "drv": "/nix/store/ps4bhg35viy6igp3cfklad8iav96r57h-nixos-system-storage-26.05.20261118.3457b69.drv",
-      "out": "/nix/store/9y2drxmxli8xgqaj64rlkficv39fqxq4-nixos-system-storage-26.05.20261118.3457b69",
-      "status" : "running"
+    "vmB": {
+      "type": "running",
+      "config": {
+        "drv": "a.drv",
+        "out": "a.out"
+      }
     }
   }
 }
+
