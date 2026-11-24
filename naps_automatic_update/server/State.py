@@ -21,6 +21,8 @@ class NAPSState:
 
     def disconnect (self, vm : str):
         self.clients.pop(vm, None)
+
+    def is_name_allowed (self, name):
         return self.expected_manifest.is_name_allowed(name)
 
     def process_status (self, vmname, status : VMStatus):
