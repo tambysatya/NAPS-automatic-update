@@ -22,3 +22,6 @@ async def admin_console (state):
 
         except (EOFError, KeyboardInterrupt):
             break
+        except BaseException as e:
+            print (f"{e!r}")
+            continue
