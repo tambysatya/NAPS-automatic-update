@@ -1,4 +1,5 @@
 import anyio
+import asyncio
 from anycorn import serve
 from anycorn.config import Config
 from pathlib import Path
@@ -8,6 +9,11 @@ import ssl
 
 from .State import NAPSState
 from .core import create_app
+
+from .Types import NAPSManifest
+from .State import NAPSState
+
+from .console import admin_console
 
 LISTEN = Path(os.environ.get("LISTEN_ADDR", "0.0.0.0:8000"))
 
@@ -39,8 +45,13 @@ async def run_server():
     config.ca_certs = args.ssl_ca
     config.verify_mode = ssl.CERT_REQUIRED
 
+    manifest = NAPSManifest.parse_file(args.vms)
+    state = NAPSState(manifest=manifest)
 
-    await serve (create_app(args.vms) , config)
+
+
+
+    await asyncio.gather (serve (create_app(state) , config), admin_console(state)) 
 
 def main():
     anyio.run(run_server)

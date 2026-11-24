@@ -11,13 +11,9 @@ from .Types import NAPSManifest, VMStatus, VMMessageAdapter
 from .State import NAPSState
 
 
-def create_app (config_file):
+def create_app (state):
     
     app = FastAPI()
-    manifest = NAPSManifest.parse_file(config_file)
-    state = NAPSState(manifest=manifest)
-
-
     @app.get("/hello")
     async def mtls(request: Request):
 
