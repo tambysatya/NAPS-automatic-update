@@ -10,11 +10,7 @@ run:
         --vms examples/infra.json
 
 test-check:
-	curl --cacert certs/intermediate_ca.crt \
-         --cert certs/test-client.local/test-client.local.crt \
-         --key certs/test-client.local/test-client.local.key \
-         https://localhost:8090/check\
-         | jq
+	uv run python -m naps_automatic_update.client.main
 test-ping:
 	curl --cacert certs/intermediate_ca.crt \
          --cert certs/test-client.local/test-client.local.crt \

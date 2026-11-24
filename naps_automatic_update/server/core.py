@@ -1,13 +1,13 @@
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
-from pydantic import ValidationError
+from pydantic import ValidationError, TypeAdapter
 import os
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 
 from .utils import get_tls_name
-from .Types import NAPSManifest, VMStatus
+from .Types import NAPSManifest, VMStatus, VMMessageAdapter
 from .State import NAPSState
 
 
@@ -16,6 +16,7 @@ def create_app (config_file):
     app = FastAPI()
     manifest = NAPSManifest.parse_file(config_file)
     state = NAPSState(manifest=manifest)
+
 
     @app.get("/hello")
     async def mtls(request: Request):
@@ -38,7 +39,7 @@ def create_app (config_file):
 
     @app.websocket("/connect")
     async def connect (ws : WebSocket):
-        vm = get_tls_name(ws.scope)
+        vm = get_tls_name(ws)
 
         if not state.is_name_allowed(vm):
             await ws.close(code=1008)
@@ -52,11 +53,15 @@ def create_app (config_file):
             while True:
                 json = await ws.receive_json()
                 try: 
-                    message = VMMessage.model_validate(json)
+                    message = VMMessageAdapter.validate_python(json)
+                    state.process_message (vm, message)
                 except ValidationError as v:
                     print (f"Invalid JSON from {vm}: {json}")
+                    print (v)
+                    print (v.errors())
                     continue
-                state.process_message (vm, message)
+                except Exception  as e:
+                    print (f"Unknown error: {e!r}")
         except WebSocketDisconnect:
             state.disconnect(vm)
         

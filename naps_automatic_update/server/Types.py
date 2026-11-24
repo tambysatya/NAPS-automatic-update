@@ -50,7 +50,7 @@ NAPSStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
 
 # Messages sent by the VMs
 
-class Acknowledge (BaseModel):
+class Ack (BaseModel):
     type: Literal ["ack"] = "ack"
     order: NAPSOrder
 
@@ -58,7 +58,8 @@ class Status (BaseModel):
     type: Literal ["status"] = "status"
     status: VMStatus
 
-VMMessage = Annotated [Acknowledge | Status, Field(discriminator="type")]
+VMMessage = Annotated [Ack | Status, Field(discriminator="type")]
+VMMessageAdapter = TypeAdapter(VMMessage)
 
 
 class NAPSManifest (BaseModel):

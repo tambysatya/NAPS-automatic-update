@@ -1,6 +1,6 @@
 
 from typing_extensions import assert_never
-from .Types import NAPSManifest, VMStatus, VMMessage
+from .Types import NAPSManifest, VMStatus, VMMessage, Status, Ack, Idle, Pending, Failed
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
@@ -31,7 +31,7 @@ class NAPSState:
 
     def process_message (self, vmname, message : VMMessage):
         match (message):
-            case Acknowledge():
+            case Ack():
                 pass
             case Status():
                 pass
