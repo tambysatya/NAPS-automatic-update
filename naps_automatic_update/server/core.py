@@ -6,9 +6,9 @@ import os
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 
-from .utils import get_tls_name
-from .Types import NAPSManifest, VMStatus, VMMessageAdapter
-from .State import NAPSState
+from ..utils import get_tls_name
+from ..utils import NAPSManifest, VMStatus, VMMessageAdapter
+from .state import NAPSState
 
 
 def create_app (state):

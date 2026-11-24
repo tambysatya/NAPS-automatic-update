@@ -1,6 +1,6 @@
 
 import asyncio
-from .Types import NAPSManifest
+from ..utils import NAPSManifest
 import shlex
 
 init_manifest = NAPSManifest.parse_file("examples/infra.json")

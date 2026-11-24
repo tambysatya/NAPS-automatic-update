@@ -1,7 +1,7 @@
 
 from typing_extensions import assert_never
-from .Types import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status
-from .Types import Ack, Idle, Pending, Failed, Running, SwitchTo
+from ..utils import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status
+from ..utils import Ack, Idle, Pending, Failed, Running, SwitchTo
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
