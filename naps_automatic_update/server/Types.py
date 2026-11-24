@@ -52,7 +52,8 @@ NAPSStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
 
 class Ack (BaseModel):
     type: Literal ["ack"] = "ack"
-    order: NAPSOrder
+    order: NAPSOrder # acknowledged order
+    status: VMStatus # new status
 
 class Status (BaseModel):
     type: Literal ["status"] = "status"
