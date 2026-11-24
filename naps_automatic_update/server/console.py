@@ -18,6 +18,7 @@ async def admin_console (state):
                     print ("Need help ?")
                 case ["update"]:
                     state.initialize_update(new_manifest)
+                    print (state.expected_manifest)
 
         except (EOFError, KeyboardInterrupt):
             break

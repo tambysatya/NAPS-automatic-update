@@ -46,7 +46,7 @@ class NAPSState:
             raise BaseException (f"Some VMs are not available: {not_pending_vms}") #TODO exception class
 
         self.expected_manifest = expected
-        #self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
+        self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
 
         return
 

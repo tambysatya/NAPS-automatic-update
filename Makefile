@@ -15,9 +15,7 @@ test-ping:
 	curl --cacert certs/intermediate_ca.crt \
          --cert certs/test-client.local/test-client.local.crt \
          --key certs/test-client.local/test-client.local.key \
-         https://localhost:8090/ping\
-         -d "running"\
+         https://localhost:8090/check \
          | jq
-         #-H "Content-Type: application/json" \
 
          

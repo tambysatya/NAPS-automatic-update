@@ -24,7 +24,10 @@ def create_app (state):
     async def check(request: Request):
 
         name = get_tls_name(request)
-        return state.manifest.model_dump()
+        return {
+            "current": state.current_manifest.model_dump(),
+            "expected": state.expected_manifest.model_dump()
+        }
 
     @app.post("/ping")
     async def ping (request: Request, status: str = Body (...)):
