@@ -1,6 +1,6 @@
 
 from typing_extensions import assert_never
-from .Types import NAPSManifest, VMStatus, VMMessage, Status, Ack, Idle, Pending, Failed
+from .Types import NAPSManifest, VMStatus, VMMessage, Status, Ack, Idle, Pending, Failed, Running
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
@@ -41,16 +41,14 @@ class NAPSState:
     
     def initialize_update (self, expected : NAPSManifest):
         
-        not_pending_vms = {vmname: config for vmname, config in self.manifest.vms.items() if not isinstance(config, Running)}
+        not_pending_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
         if not_pending_vms != {}:
             raise BaseException (f"Some VMs are not available: {not_pending_vms}") #TODO exception class
 
         self.expected_manifest = expected
-        self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
+        #self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
 
         return
-
-
 
 
         

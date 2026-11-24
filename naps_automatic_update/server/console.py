@@ -1,6 +1,10 @@
+
 import asyncio
+from .Types import NAPSManifest
 import shlex
 
+init_manifest = NAPSManifest.parse_file("examples/infra.json")
+new_manifest = NAPSManifest.parse_file("examples/infra2.json")
 
 async def admin_console (state):
     while True:
@@ -12,6 +16,8 @@ async def admin_console (state):
             match args:
                 case ["help"]:
                     print ("Need help ?")
+                case ["update"]:
+                    state.initialize_update(new_manifest)
 
         except (EOFError, KeyboardInterrupt):
             break
