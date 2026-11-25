@@ -1,10 +1,20 @@
 from pydantic import BaseModel, Field, TypeAdapter
 from typing import Literal, Annotated
 
+import subprocess
+
+from .nix import nix_path_info
+
 
 class ConfigHash (BaseModel):
     drv: str
     out: str
+
+    @classmethod
+    def init(self): 
+        self.drv = nix_path_info("--derivation", "/run/current/system")
+        self.out =  nix_path_info("/run/current/system")
+        
 
 # NAPS Orders: commands sent by the orchestrator
 
@@ -23,6 +33,7 @@ class Commit (BaseModel):
     config: ConfigHash # This is the derivation of the infrastructure version
 
 NAPSOrder = Annotated[Idle | SwitchTo | Commit, Field(discriminator="type")]
+NAPSOrderAdapter = TypeAdapter(NAPSOrder)
 
 # Status
 class Running (BaseModel):
