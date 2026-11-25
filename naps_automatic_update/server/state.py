@@ -10,6 +10,7 @@ class NAPSState:
         self.current_manifest : NAPSManifest = manifest
         self.expected_manifest : NAPSManifest = manifest
         self.clients : dict [str, WebSocket] = {}
+        self.awaiting_orders : dict [str, NAPSOrder] = {}
     
     async def connect (self, vm: str, ws : WebSocket):
         await ws.accept()
@@ -26,7 +27,8 @@ class NAPSState:
     def is_name_allowed (self, name):
         return self.expected_manifest.is_name_allowed(name)
 
-    def process_status (self, vmname, status : VMStatus):
+    def process_status (self, vm, status : VMStatus):
+        self.current_manifest.vms[vm] = status
         match (status):
             case Idle():
                 pass
@@ -37,12 +39,17 @@ class NAPSState:
             case _ as unreachable:
                 assert_never(unreachable)
 
-    def process_message (self, vmname, message : VMMessage):
+    def process_message (self, vm, message : VMMessage):
+        print (message)
         match (message):
             case Ack():
-                pass
+                order = message.order
+                if (not (vm in self.awaiting_orders)) or (self.awaiting_orders[vm] != order):
+                    raise BaseException (f"Received an acknowledgment for a non-awaited order: {order}")
+                self.awaiting_orders.pop(vm, None)
+                self.process_status (vm, message.status)
             case Status():
-                pass
+                self.process_status(vm, message)
             case _ as unreachable:
                 assert_never(unreachable)
 
@@ -54,27 +61,35 @@ class NAPSState:
         if not isinstance(self.current_manifest.status, Running):
             raise BaseException (f"An update is already ongoing")
 
-        # check if all the vms are connected
-        not_connected_vms = [vm for vm in self.expected_manifest.vms if not vm in self.clients]
-        if not_connected_vms != []:
-            raise BaseException (f"Some vms are not connected: f{not_connected_vms}")
-        
+
 
         # check if all the VMs are Running properly
         not_running_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
         if not_running_vms != {}:
             raise BaseException (f"Some VMs are not available: {not_running_vms}") #TODO exception class
 
-        print ("updating")
+
+        modified_vms = {vm: conf for vm,conf in expected.vms.items() if not (vm in self.current_manifest.vms) or (conf != self.current_manifest.vms[vm])}
+
+        # check if all the vms are connected
+        not_connected_vms = [vm for vm in modified_vms if not vm in self.clients]
+        if not_connected_vms != []:
+            raise BaseException (f"Some vms are not connected: f{not_connected_vms}")
+        
+        # check if there is no awaiting order
+        if self.awaiting_orders != {}:
+            raise BaseException (f"Unable to deploy: already awaiting orders {self.awaiting_orders}")
 
         self.expected_manifest = expected
         self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
 
 
-        print (f"expected={expected}")
-        for vm in expected.vms:
+        for vm in modified_vms:
             order = SwitchTo (config=expected.vms[vm].config)
+            self.awaiting_orders[vm] = order
             await self.send(vm, order)
+
+        # TODO arm the watchdog
             
 
 

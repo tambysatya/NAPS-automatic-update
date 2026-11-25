@@ -1,29 +1,40 @@
 import asyncio
 import websockets
 import ssl
-from ..utils import VMMessage, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info 
-from ..utils import Running, SwitchTo
+from ..utils import VMMessage, NAPSOrder, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info, SwitchTo, Pending, Ack
+from ..utils import Running
 from .console import admin_console
 import subprocess
 
 class VMState:
-    def __init__(self, config):
+    def __init__(self, ws, config):
 
-
+        self.ws = ws
         self.status = Running (config = config)
         pass
-    async def on_message(self, message : VMMessage):
-        #print(f"\n[SERVER] {message}")
+
+    async def send(self, message : VMMessage):
+        await self.ws.send(message.model_dump_json())
+    async def on_message(self, message : NAPSOrder):
         print(f"\ntype={message.type}")
         match message:
-            case SwitchTo():
+            case SwitchTo() as order :
                 print ("SWITCHING TO")
+                # acknowledging
+                self.status = Pending (old = self.status.config, new = order.config)
+
+                ans = Ack(order = order, status = self.status)
+                await self.send(ans)
+
+
+
+                # update script
             case _:
                 print ("NOTHING FOUND")
 
         pass
-
-async def server_main(state):
+#TODO auto reconnect
+async def server_main():
     ssl_context = ssl.create_default_context(cafile="certs/root_ca.crt")
     ssl_context.load_cert_chain(
         certfile="certs/test-client.local/test-client.local.crt",
@@ -33,6 +44,8 @@ async def server_main(state):
         "wss://localhost:8090/connect",
         ssl = ssl_context
     ) as ws:
+        config = await ConfigHash.current()
+        state = VMState(ws, config)
         async def receive(state):
             async for json in ws:
                 message = NAPSOrderAdapter.validate_json(json)
@@ -40,9 +53,7 @@ async def server_main(state):
 
         await asyncio.gather (receive(state) , admin_console(state)) 
 async def main ():
-    conf = await ConfigHash.current()
-    state = VMState(conf)
-    await server_main (state)
+    await server_main ()
 
 if __name__ == "__main__":
     asyncio.run(main())
