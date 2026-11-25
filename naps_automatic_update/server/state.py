@@ -50,18 +50,22 @@ class NAPSState:
        await self.clients[vm].send_text(order.model_dump_json()) 
     
     async def initialize_update (self, expected : NAPSManifest):
-        
-        # check if all the VMs are Running properly
-        not_running_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
-        if not_running_vms != {}:
-            raise BaseException (f"Some VMs are not available: {not_running_vms}") #TODO exception class
+
+        if not isinstance(self.current_manifest.status, Running):
+            raise BaseException (f"An update is already ongoing")
 
         # check if all the vms are connected
         not_connected_vms = [vm for vm in self.expected_manifest.vms if not vm in self.clients]
         if not_connected_vms != []:
             raise BaseException (f"Some vms are not connected: f{not_connected_vms}")
-            return
         
+
+        # check if all the VMs are Running properly
+        not_running_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
+        if not_running_vms != {}:
+            raise BaseException (f"Some VMs are not available: {not_running_vms}") #TODO exception class
+
+        print ("updating")
 
         self.expected_manifest = expected
         self.current_manifest.status = Pending (old = self.current_manifest.status.config, new = expected.status.config)
