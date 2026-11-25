@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import ssl
 from ..utils import VMMessage, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info 
-from ..utils import Running
+from ..utils import Running, SwitchTo
 from .console import admin_console
 import subprocess
 
@@ -11,10 +11,16 @@ class VMState:
 
 
         self.status = Running (config = config)
-        print (self.status.model_dump_json())
         pass
     async def on_message(self, message : VMMessage):
-        print(f"\n[SERVER] {message}")
+        #print(f"\n[SERVER] {message}")
+        print(f"\ntype={message.type}")
+        match message:
+            case SwitchTo():
+                print ("SWITCHING TO")
+            case _:
+                print ("NOTHING FOUND")
+
         pass
 
 async def server_main(state):
@@ -29,17 +35,13 @@ async def server_main(state):
     ) as ws:
         async def receive(state):
             async for json in ws:
-                print(f"\n[SERVER] {json}")
                 message = NAPSOrderAdapter.validate_json(json)
-            await state.on_message(message)
+                await state.on_message(message)
 
         await asyncio.gather (receive(state) , admin_console(state)) 
 async def main ():
     conf = await ConfigHash.current()
-    print(conf)
-
     state = VMState(conf)
-    print(state.status)
     await server_main (state)
 
 if __name__ == "__main__":
