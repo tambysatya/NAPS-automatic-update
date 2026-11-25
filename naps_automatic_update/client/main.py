@@ -40,7 +40,7 @@ async def main ():
 
     state = VMState(conf)
     print(state.status)
-    #await server_main (state)
+    await server_main (state)
 
 if __name__ == "__main__":
     asyncio.run(main())
