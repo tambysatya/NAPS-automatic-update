@@ -28,7 +28,7 @@ async def server_main(state):
         ssl = ssl_context
     ) as ws:
         async def receive(state):
-            for json in ws:
+            async for json in ws:
                 print(f"\n[SERVER] {json}")
                 message = NAPSOrderAdapter.validate_json(json)
             await state.on_message(message)
