@@ -9,12 +9,11 @@ from .nix import nix_path_info
 class ConfigHash (BaseModel):
     drv: str
     out: str
-
     @classmethod
-    def init(self): 
-        self.drv = nix_path_info("--derivation", "/run/current/system")
-        self.out =  nix_path_info("/run/current/system")
-        
+    async def current(cls):
+        drv = await nix_path_info("--derivation", "/run/current-system")
+        out = await nix_path_info("/run/current-system")
+        return cls(drv=drv, out=out)
 
 # NAPS Orders: commands sent by the orchestrator
 

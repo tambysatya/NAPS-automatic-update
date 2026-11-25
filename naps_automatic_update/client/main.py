@@ -1,8 +1,22 @@
 import asyncio
 import websockets
 import ssl
+from ..utils import VMMessage, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info 
+from ..utils import Running
+from .console import admin_console
+import subprocess
 
-async def main():
+class VMState:
+    def __init__(self, config):
+
+
+        self.status = Running (config = config)
+        print (self.status.model_dump_json())
+        pass
+    def on_message(self, message : VMMessage):
+        pass
+
+async def server_main(state):
     ssl_context = ssl.create_default_context(cafile="certs/root_ca.crt")
     ssl_context.load_cert_chain(
         certfile="certs/test-client.local/test-client.local.crt",
@@ -13,14 +27,19 @@ async def main():
         ssl = ssl_context
     ) as ws:
         async def receive():
-            async for message in ws:
-                print(f"\n[SERVER] {message}")
+            async for json in ws:
+                print(f"\n[SERVER] {json}")
+                message = NAPSOrderAdapter.validate_json(json)
+                print(f"\n[SERVER] {message}: {json}")
 
-        async def send():
-            while True:
-                message = await asyncio.to_thread(input, "> ")
-                await ws.send(message)
+        await asyncio.gather (receive , await admin_console(state)) 
+async def main ():
+    conf = await ConfigHash.current()
+    print(conf)
 
-        await asyncio.gather(receive(), send())
+    state = VMState(conf)
+    print(state)
+    await server_main (state)
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

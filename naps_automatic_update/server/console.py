@@ -9,7 +9,7 @@ new_manifest = NAPSManifest.parse_file("examples/infra2.json")
 async def admin_console (state):
     while True:
         try:
-            line = await asyncio.to_thread(input, "naps> ")
+            line = await asyncio.to_thread(input, "naps-server> ")
             args = shlex.split(line)
             if not args:
                 continue
