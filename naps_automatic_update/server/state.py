@@ -7,8 +7,8 @@ from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketD
 class NAPSState:
 
     def __init__(self, manifest):
-        self.current_manifest : NAPSManifest = manifest
-        self.expected_manifest : NAPSManifest = manifest
+        self.current_manifest : NAPSManifest = manifest.model_copy(deep=True)
+        self.expected_manifest : NAPSManifest = manifest.model_copy(deep=True)
         self.clients : dict [str, WebSocket] = {}
         self.awaiting_orders : dict [str, NAPSOrder] = {}
     
@@ -30,7 +30,7 @@ class NAPSState:
     def process_status (self, vm, status : VMStatus):
         self.current_manifest.vms[vm] = status
         match (status):
-            case Idle():
+            case Running():
                 pass
             case Pending():
                 pass
@@ -49,7 +49,7 @@ class NAPSState:
                 self.awaiting_orders.pop(vm, None)
                 self.process_status (vm, message.status)
             case Status():
-                self.process_status(vm, message)
+                self.process_status(vm, message.status)
             case _ as unreachable:
                 assert_never(unreachable)
 

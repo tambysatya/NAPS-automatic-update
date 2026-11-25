@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 import ssl
-from ..utils import VMMessage, NAPSOrder, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info, SwitchTo, Pending, Ack
+from ..utils import VMMessage, NAPSOrder, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info, SwitchTo, Pending, Ack, Status
 from ..utils import Running
 from .console import admin_console
 import subprocess
@@ -11,7 +11,6 @@ class VMState:
 
         self.ws = ws
         self.status = Running (config = config)
-        pass
 
     async def send(self, message : VMMessage):
         await self.ws.send(message.model_dump_json())
@@ -19,10 +18,8 @@ class VMState:
         print(f"\ntype={message.type}")
         match message:
             case SwitchTo() as order :
-                print ("SWITCHING TO")
-                # acknowledging
-                self.status = Pending (old = self.status.config, new = order.config)
 
+                self.status = Pending (old = self.status.config, new = order.config)
                 ans = Ack(order = order, status = self.status)
                 await self.send(ans)
 
@@ -46,6 +43,8 @@ async def server_main():
     ) as ws:
         config = await ConfigHash.current()
         state = VMState(ws, config)
+        await state.send(Status (status = state.status))
+
         async def receive(state):
             async for json in ws:
                 message = NAPSOrderAdapter.validate_json(json)
