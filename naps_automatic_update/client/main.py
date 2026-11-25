@@ -13,7 +13,8 @@ class VMState:
         self.status = Running (config = config)
         print (self.status.model_dump_json())
         pass
-    def on_message(self, message : VMMessage):
+    async def on_message(self, message : VMMessage):
+        print(f"\n[SERVER] {message}")
         pass
 
 async def server_main(state):
@@ -26,20 +27,20 @@ async def server_main(state):
         "wss://localhost:8090/connect",
         ssl = ssl_context
     ) as ws:
-        async def receive():
-            async for json in ws:
+        async def receive(state):
+            for json in ws:
                 print(f"\n[SERVER] {json}")
                 message = NAPSOrderAdapter.validate_json(json)
-                print(f"\n[SERVER] {message}: {json}")
+            await state.on_message(message)
 
-        await asyncio.gather (receive , await admin_console(state)) 
+        await asyncio.gather (receive(state) , admin_console(state)) 
 async def main ():
     conf = await ConfigHash.current()
     print(conf)
 
     state = VMState(conf)
-    print(state)
-    await server_main (state)
+    print(state.status)
+    #await server_main (state)
 
 if __name__ == "__main__":
     asyncio.run(main())
