@@ -42,6 +42,8 @@ class NAPSState:
                     order = SwitchTo (config=expected)
                     await self.send_order(vm, order)
                 self.update_vm_status(vm, status)
+            case Pending():
+                self.update_vm_status(vm, status)
 
     async def on_pending_phase (self, vm : str, message : VMMessage):
         status = message.status 

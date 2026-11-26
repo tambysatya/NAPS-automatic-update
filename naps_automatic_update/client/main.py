@@ -23,6 +23,8 @@ class VMState:
                 ans = Ack(order = order, status = self.status)
                 await self.send(ans)
 
+                print (f"Sending {ans}")
+
                 # update script
                 await asyncio.sleep(5)
 
