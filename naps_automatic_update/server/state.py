@@ -44,6 +44,8 @@ class NAPSState:
                 self.update_vm_status(vm, status)
             case Pending():
                 self.update_vm_status(vm, status)
+            case _:
+                assert_never(unexpected)
 
     async def on_pending_phase (self, vm : str, message : VMMessage):
         status = message.status 
