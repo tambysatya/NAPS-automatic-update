@@ -1,7 +1,7 @@
 
 from typing_extensions import assert_never
 from ..utils import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status
-from ..utils import Ack, Idle, Pending, Failed, Committing, Running, SwitchTo
+from ..utils import Ack, Idle, Pending, Failed, Committing, Running, SwitchTo, Commit
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
@@ -26,7 +26,7 @@ class NAPSState:
 
     def is_name_allowed (self, name):
         return self.expected_manifest.is_name_allowed(name)
-    def update_vm_status (self, vm, status):
+    def update_vm_status (self, vm : str, status : VMStatus):
         self.current_manifest.vms[vm] = status
 
     async def on_pending_phase_status (self, vm : str, status : VMStatus):
@@ -136,7 +136,13 @@ class NAPSState:
         """ Sets the current to "Failed" """
         self.current_manifest.status = Failed (old = self.current_manifest.status.config, new = self.expected_manifest.status.config)
     async def switch_to_commit (self):
-        pass
+        print ("Switching to commit")
+        if self.awaiting_orders != {}:
+            raise BaseException (f"Cannot switch to commit: awaiting orders {self.awaiting_orders}")
+        self.current_manifest.status = Committing(config = self.current_manifest.status.new)
+        for vm, expected in self.expected_manifest.vms.items():
+            order = Commit (config=expected.config)
+            await self.send_order(vm, order)
 
 
     async def initialize_update (self, expected : NAPSManifest):
