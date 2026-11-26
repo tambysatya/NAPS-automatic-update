@@ -1,7 +1,7 @@
 
 from typing_extensions import assert_never
 from ..utils import NAPSManifest, NAPSOrder, VMStatus, VMMessage, Status
-from ..utils import Ack, Idle, Pending, Failed, Committing, Running, SwitchTo, Commit
+from ..utils import Ack, Idle, Pending, Failed, Running, SwitchTo, Commit
 from fastapi import FastAPI, HTTPException, Request, Body, WebSocket, WebSocketDisconnect
 
 class NAPSState:
@@ -54,12 +54,6 @@ class NAPSState:
             await self.switch_to_commit()
 
 
-    async def on_commit_phase_status (self, vm : str, status : VMStatus):
-        pass
-    async def on_commit_phase_ack (self, vm : str,  order : NAPSOrder, status : VMStatus):
-        pass
-    async def on_commit_phase(self, vm, message : VMMessage):
-        pass
 
     async def on_failed_phase_status (self, vm : str, status : VMStatus):
         pass
@@ -96,8 +90,6 @@ class NAPSState:
                 await self.on_pending_phase (vm, message)
             case Failed():
                 await self.on_failed_phase (vm, message) 
-            case Committing():
-                await self.on_commit_phase (vm, message) 
             case Running():
                 await self.on_running_phase (vm, message)
             case _ as unreachable:
@@ -135,6 +127,8 @@ class NAPSState:
 
         # TODO arm the watchdog
 
+    def self.switch_to_running (self):
+        self.current_manifest.status = Running (config = self.current_manifest.status.new)
     def switch_to_failed (self, reason):
         """ Sets the current to "Failed" """
         self.current_manifest.status = Failed (old = self.current_manifest.status.config, new = self.expected_manifest.status.config)
@@ -142,7 +136,6 @@ class NAPSState:
         print ("Switching to commit")
         if self.awaiting_orders != {}:
             raise BaseException (f"Cannot switch to commit: awaiting orders {self.awaiting_orders}")
-        self.current_manifest.status = Committing(config = self.current_manifest.status.new)
         for vm, expected in self.expected_manifest.vms.items():
             order = Commit (config=expected.config)
             await self.send_order(vm, order)

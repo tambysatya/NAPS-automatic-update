@@ -1,7 +1,7 @@
 import asyncio
 import websockets
 import ssl
-from ..utils import VMMessage, NAPSOrder, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info, SwitchTo, Pending, Ack, Status
+from ..utils import VMMessage, NAPSOrder, NAPSOrderAdapter, VMStatus, ConfigHash, nix_path_info, SwitchTo, Pending, Ack, Status, Commit
 from ..utils import Running
 from .console import admin_console
 import subprocess
@@ -23,14 +23,23 @@ class VMState:
                 ans = Ack(order = order, status = self.status)
                 await self.send(ans)
 
-                print (f"Sending {ans}")
+                print (f"SwitchTo: sending ans={ans}")
 
-                # update script
+                # TODO Here should be the update script (backups, rebuild ,....)
+                # ...
                 await asyncio.sleep(5)
+                # End of the update script
+                # TODO: arm a watch dog with a nixos-rollback
 
                 self.status = Running (config = order.config)
                 await self.send(Status(status=self.status))
 
+            case Commit() as order:
+                ans = Ack(order = order, status = self.status)
+                print (f"Commit: sending ans={ans}")
+                self.send(ack)
+                # TODO: Kill the watchdog
+                pass
             case _:
                 print ("NOTHING FOUND")
 
