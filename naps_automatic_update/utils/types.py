@@ -52,11 +52,19 @@ class Failed (BaseModel):
     type: Literal["failed"] = "failed"
     old : ConfigHash
     new : ConfigHash
+    reason : str
+
+class Committing (BaseModel):
+    """ The update orchestrer waits to acknowledge of all the commits """
+    type: Literal["committing"] = "committing"
+    config : ConfigHash
+
+
 
 
 
 VMStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
-NAPSStatus = Annotated[Running | Pending | Failed, Field(discriminator="type")]
+NAPSStatus = Annotated[Running | Pending | Failed | Committing, Field(discriminator="type")]
 
 # Messages sent by the VMs
 

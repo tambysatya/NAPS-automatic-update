@@ -53,7 +53,7 @@ def create_app (state):
                 json = await ws.receive_json()
                 try: 
                     message = VMMessageAdapter.validate_python(json)
-                    state.process_message (vm, message)
+                    await state.process_message (vm, message)
                 except ValidationError as v:
                     print (f"Invalid JSON from {vm}: {json}")
                     print (v)
