@@ -23,9 +23,12 @@ class VMState:
                 ans = Ack(order = order, status = self.status)
                 await self.send(ans)
 
-
-
                 # update script
+                await asyncio.sleep(5)
+
+                self.status = Running (config = order.config)
+                await self.send(Status(status=self.status))
+
             case _:
                 print ("NOTHING FOUND")
 
