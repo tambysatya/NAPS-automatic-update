@@ -2,8 +2,8 @@
   "status": {
     "type": "running",
     "config": {
-      "drv": "naps.drv",
-      "out": "naps.out"
+      "drv": "naps_NEW.drv",
+      "out": "naps_NEW.out"
     }
   },
   "vms": {

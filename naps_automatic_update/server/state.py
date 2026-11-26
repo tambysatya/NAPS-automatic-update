@@ -106,6 +106,11 @@ class NAPSState:
     async def switch_to_pending(self):
         """ Sets the current to "Pending" """
         current, expected = self.current_manifest, self.expected_manifest
+        
+        if isinstance (self.current_manifest.status, Failed):
+            raise BaseException (f"Cannot switch_to_pending: in a 'Failed' state: {current}")
+    
+
         modified_vms = {vm: conf for vm,conf in expected.vms.items() if not (vm in current.vms) or (conf != current.vms[vm])}
 
         # check if all the vms are connected
@@ -127,15 +132,23 @@ class NAPSState:
 
         # TODO arm the watchdog
 
-    def self.switch_to_running (self):
+    def switch_to_running (self):
+        if isinstance (self.current_manifest.status, Failed):
+            raise BaseException (f"Cannot switch_to_pending: in a 'Failed' state: {current}")
         self.current_manifest.status = Running (config = self.current_manifest.status.new)
     def switch_to_failed (self, reason):
         """ Sets the current to "Failed" """
-        self.current_manifest.status = Failed (old = self.current_manifest.status.config, new = self.expected_manifest.status.config)
+        if isinstance (self.current_manifest.status, Failed):
+            raise BaseException (f"Cannot switch_to_pending: in a 'Failed' state: {current}")
+        self.current_manifest.status = Failed (old = self.current_manifest.status.config, new = self.expected_manifest.status.config, reason = reason)
     async def switch_to_commit (self):
         print ("Switching to commit")
+        current = self.current_manifest
+        if isinstance (self.current_manifest.status, Failed):
+            raise BaseException (f"Cannot switch_to_pending: in a 'Failed' state: {current}")
         if self.awaiting_orders != {}:
             raise BaseException (f"Cannot switch to commit: awaiting orders {self.awaiting_orders}")
+        self.current_manifest.status = Running(config=self.expected_manifest.status.config)
         for vm, expected in self.expected_manifest.vms.items():
             order = Commit (config=expected.config)
             await self.send_order(vm, order)
@@ -146,14 +159,12 @@ class NAPSState:
         if not isinstance(self.current_manifest.status, Running):
             raise BaseException (f"An update is already ongoing")
 
-
-
         # check if all the VMs are Running properly
         not_running_vms = {vmname: config for vmname, config in self.current_manifest.vms.items() if not isinstance(config, Running)}
         if not_running_vms != {}:
             raise BaseException (f"Some VMs are not available: {not_running_vms}") #TODO exception class
 
-
+        self.expected_manifest = expected
         await self.switch_to_pending()
 
 

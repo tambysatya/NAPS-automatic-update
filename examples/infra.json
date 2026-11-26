@@ -2,16 +2,16 @@
   "status": {
     "type": "running",
     "config": {
-      "drv": "naps.drv",
-      "out": "naps.out"
+      "drv": "naps_OLD.drv",
+      "out": "naps_OLD.out"
     }
   },
   "vms": {
     "test-client": {
       "type": "running",
       "config": {
-        "drv": "a.drv",
-        "out": "a.out"
+        "drv": "old.drv",
+        "out": "old.out"
       }
     }
   }
