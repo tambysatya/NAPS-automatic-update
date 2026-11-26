@@ -68,9 +68,8 @@ class NAPSState:
         current = status.config
         assumed = self.current_manifest.vms[vm].config
         if current != assumed:
-            print (f"Warning: unexpected config from {vm}: current={current} assumed={assumed}. Running an update")
+            print (f"Warning: unexpected config from {vm}: current={current} assumed={assumed}. Updating current state")
             self.update_vm_status(vm, status)
-            await self.switch_to_pending() 
     async def on_running_phase_ack(self, vm : str, order : NAPSOrder, status : VMStatus):
         pass
     async def on_running_phase(self, vm, message : VMMessage):
