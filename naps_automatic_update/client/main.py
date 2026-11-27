@@ -10,29 +10,28 @@ class VMState:
     def __init__(self, ws, config):
 
         self.ws = ws
-        self.status = Running (config = config)
+        self.status = Running (config = config.model_copy(deep = True))
 
     async def send(self, message : VMMessage):
         await self.ws.send(message.model_dump_json())
     async def on_message(self, message : NAPSOrder):
-        print(f"\ntype={message.type}")
+        print(f"{message}")
         match message:
             case SwitchTo() as order :
 
                 self.status = Pending (old = self.status.config, new = order.config)
                 ans = Ack(order = order, status = self.status)
-                await self.send(ans)
-
                 print (f"SwitchTo: sending ans={ans}")
+                await self.send(ans)
 
                 # TODO Here should be the update script (backups, rebuild ,....)
                 # ...
-                await asyncio.sleep(5)
+                #await asyncio.sleep(5)
                 # End of the update script
                 # TODO: arm a watch dog with a nixos-rollback
 
-                self.status = Running (config = order.config)
-                await self.send(Status(status=self.status))
+                #self.status = Running (config = order.config)
+                #await self.send(Status(status=self.status))
 
             case Commit() as order:
                 ans = Ack(order = order, status = self.status)
